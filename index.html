@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K-Pop Merch Store</title>
+<style>
+body {
+    margin:0; padding:0;
+    font-family: 'Poppins', sans-serif;
+   background: linear-gradient(135deg,
+    #6920f0 ,
+    #35adfc ,
+    #0d00c7 
+);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Efek Sparkle */
+.sparkle {
+    position: absolute;
+    background-color: rgb(255, 230, 0);
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0;
+    animation: sparkleAnimation 2s linear forwards;
+}
+
+@keyframes sparkleAnimation {
+    0% {
+        transform: scale(0) rotate(0deg);
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1) rotate(180deg);
+        opacity: 0;
+    }
+}
+
+/* Pop-up baru seperti gambar */
+.popup-bg {
+    display:none; position:fixed; top:0; left:0;
+    width:100%; height:100%; background: rgba(0,0,0,0.4);
+    justify-content:center; align-items:center;
+    z-index: 1000;
+}
+.popup-box {
+    background:white; padding:30px; border-radius:10px;
+    text-align:center; box-shadow:0 2px 10px rgba(0,0,0,0.1);
+    min-width: 300px;
+}
+.popup-box p {
+    margin: 0 0 20px 0;
+    color: #333;
+    font-size: 16px;
+}
+.popup-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+.popup-btn {
+    padding: 8px 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+.popup-btn.confirm {
+    background: #4CAF50;
+    color: white;
+    border: none;
+}
+.popup-btn.cancel {
+    background: #f44336;
+    color: white;
+    border: none;
+}
+
+/* Pages */
+.page { display:none; padding:25px; margin:auto; }
+h1,h2 { text-align:center; color:#000000; margin-bottom:25px; }
+h1 { font-size:32px; letter-spacing:1.5px; }
+h2 { font-size:26px; }
+
+/* Container putih */
+.container {
+    max-width:500px;
+    padding:25px;
+    margin:auto;
+    background: rgba(255,255,255,0.9);
+    border-radius:20px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.2);
+    display:grid;
+    gap:12px;
+}
+
+/* Welcome box - PERBAIKAN DI SINI */
+#welcome .welcome-container {
+    max-width:500px;
+    padding:25px;
+    margin:100px auto;
+    background: rgba(255,255,255,0.9);
+    border-radius:20px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.2);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:20px;
+}
+
+/* Tombol sejajar di halaman welcome */
+.button-row {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    width: 100%;
+}
+
+/* Form grid */
+.form-grid { display:grid; grid-template-columns:160px 1fr; gap:12px 18px; align-items:center; }
+input, select { padding:10px; border-radius:10px; border:4px solid hsl(226, 78%, 53%); background:#e8fdff; transition:0.2s; font-weight: bold; }
+input:focus, select:focus { outline:none; border-color:#00889a; background:white; }
+
+/* Buttons */
+button { padding:10px 20px; border:none; border-radius:10px; font-size:15px; cursor:pointer; margin:5px; font-weight:600; transition:0.2s; }
+button:hover { opacity:0.85; }
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.btn-main { background:hsl(226, 78%, 53%); color:white; }
+.btn-edit { background:#ffc107; }
+.btn-delete { background:#cf1d11; color:white; }
+.btn-bayar { background:#4caf50; color:white; }
+.btn-reset { background:#cf1d11; color:white; }
+
+/* Table */
+table { width:100%; border-collapse:collapse; margin-top:20px; border-radius:10px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.1); }
+th { background:hsl(226, 78%, 53%); color:white; padding:12px; }
+td { background:#f9ffff; padding:10px; border-bottom:1px solid #ccc; text-align:center; }
+
+/* Total Box */
+.total-box { display:grid; grid-template-columns:160px 1fr; gap:12px 18px; align-items:center; margin-top:20px; }
+
+.rupiah { color: #006d7a; font-weight: bold; }
+
+/* Tombol Edit dan Delete sejajar */
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+.action-buttons button {
+    flex: 1;
+    min-width: 70px;
+    padding: 8px 12px;
+    font-size: 14px;
+    margin: 0;
+}
+</style>
+</head>
+<body>
+
+<!-- Pop-up baru -->
+<div class="popup-bg" id="popupBg">
+    <div class="popup-box">
+        <p id="popupText">Apakah Anda yakin?</p>
+        <div class="popup-buttons">
+            <button class="popup-btn confirm" onclick="confirmPopup(true)">Ya</button>
+            <button class="popup-btn cancel" onclick="confirmPopup(false)">Tidak</button>
+        </div>
+    </div>
+</div>
+
+<!-- PAGE 1: WELCOME -->
+<div id="welcome" class="page" style="display:block;">
+    <div class="welcome-container">
+        <h1>💫 MERCH K-POP STORE 💫 </h1>
+        <!-- PERBAIKAN: Tombol Album dan Photocard sekarang sejajar -->
+        <div class="button-row">
+            <button class="btn-main" onclick="switchPage('album')">Album Store 📀</button>
+            <button class="btn-main" onclick="switchPage('pc')">Photocard Store 🖼️</button>
+        </div>
+    </div>
+</div>
+
+<!-- PAGE 2: ALBUM -->
+<div id="album" class="page">
+<h2>✨ Album Store ✨</h2>
+<div class="container">
+    <div class="form-grid">
+        <label><b>Nama Pembeli:</b></label><input type="text" id="buyerA">
+        <label><b>Nama Produk:</b></label>
+        <select id="productA" onchange="updateSubtotal('A')">
+            <option value="Hearts2Hearts" data-price="185000"><b>Focus Hearts2Hearts - 185k</b></option>
+            <option value="Enhypen" data-price="250000"><b>Desire Unleash Enhypen - 250k</b></option>
+            <option value="Babymonster" data-price="200000"><b>We Go Up Babymonster - 200k</b></option>
+            <option value="BTS" data-price="320000"><b>Dynamite BTS - 320k</b></option>
+        </select>
+        <label><b>QTY:</b></label><input type="number" id="qtyA" min="1" oninput="updateSubtotal('A')">
+        <label><b>Sub Total:</b></label><input id="subA" readonly class="rupiah">
+    </div>
+    <div>
+        <button class="btn-main" onclick="trigger('addA', 'Apakah anda yakin?')">Input</button>
+        <button class="btn-reset" onclick="trigger('resetA', 'ingin menghapus semua data?')">Reset</button>
+    </div>
+    <table>
+        <thead>
+            <tr><th>Pembeli</th><th>Produk</th><th>QTY</th><th>Sub Total</th><th>Action</th></tr>
+        </thead>
+        <tbody id="tableA"></tbody>
+    </table>
+    <div class="total-box">
+        <label><b>Total:</b></label><input id="totalA" readonly class="rupiah">
+        <label><b>Jumlah Bayar:</b></label><input type="number" id="payA">
+        <label><b>Kembalian:</b></label><input id="changeA" readonly class="rupiah">
+    </div>
+    <button class="btn-bayar" onclick="trigger('payA', 'Proses pembayaran?')">Bayar</button>
+    <button class="btn-reset" onclick="switchPage('welcome')">⬅ Kembali</button>
+</div>
+</div>
+
+<!-- PAGE 3: PHOTOCARD -->
+<div id="pc" class="page">
+<h2>✨ Photocard Store ✨</h2>
+<div class="container">
+    <div class="form-grid">
+        <label><b>Nama Pembeli:</b></label><input type="text" id="buyerP">
+        <label><b>Nama Produk:</b></label>
+        <select id="productP" onchange="updateSubtotal('P')">
+            <option value="PC All Group" data-price="52000">Random PC All Group - 52k</option>
+            <option value="PC H2H" data-price="89000">PC Hearts2Hearts - 89k</option>
+            <option value="PC Enhypen" data-price="120000">PC Enhypen - 120k</option>
+            <option value="PC Babymonster" data-price="98000">PC Babymonster - 98k</option>
+            <option value="PC BTS" data-price="150000">PC BTS - 150k</option>
+        </select>
+        <label><b>QTY:</b></label><input type="number" id="qtyP" min="1" oninput="updateSubtotal('P')">
+        <label><b>Sub Total:</b></label><input id="subP" readonly class="rupiah">
+    </div>
+    <div>
+        <button class="btn-main" onclick="trigger('addP', 'Apakah anda yakin?')">Input</button>
+        <button class="btn-reset" onclick="trigger('resetP', 'ingin menghapus semua data?')">Reset</button>
+    </div>
+    <table>
+        <thead>
+            <tr><th>Pembeli</th><th>Produk</th><th>QTY</th><th>Sub Total</th><th>Action</th></tr>
+        </thead>
+        <tbody id="tableP"></tbody>
+    </table>
+    <div class="total-box">
+        <label><b>Total:</b>:</label><input id="totalP" readonly class="rupiah">
+        <label><b>Jumlah Bayar:</b></label><input type="number" id="payP">
+        <label><b>Kembalian:</b></label><input id="changeP" readonly class="rupiah">
+    </div>
+    <button class="btn-bayar" onclick="trigger('payP', 'Proses pembayaran?')">Bayar</button>
+    <button class="btn-reset" onclick="switchPage('welcome')">⬅ Kembali</button>
+</div>
+</div>
+
+<script>
+let popupAction = null;
+let popupData = null;
+let editA = -1, editP = -1;
+let dataA = [], dataP = [];
+
+// Format Rupiah
+function formatRupiah(angka) {
+    return 'Rp ' + Number(angka).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+function switchPage(p) {
+    document.querySelectorAll('.page').forEach(x => x.style.display = 'none'); 
+    document.getElementById(p).style.display = 'block';
+}
+
+function trigger(act, message, data = null) { 
+    popupAction = act; 
+    popupData = data;
+    document.getElementById('popupText').textContent = message;
+    document.getElementById('popupBg').style.display = 'flex';
+}
+
+function confirmPopup(val) { 
+    document.getElementById('popupBg').style.display = 'none'; 
+    if(val) {
+        // Handle delete khusus
+        if(popupAction === 'delete') {
+            let list = popupData.type === 'A' ? dataA : dataP;
+            list.splice(popupData.index, 1);
+            renderTable(popupData.type);
+        } 
+        // Handle edit khusus  
+        else if(popupAction === 'edit') {
+            let list = popupData.type === 'A' ? dataA : dataP;
+            let i = popupData.index;
+            document.getElementById(popupData.type === 'A' ? 'buyerA' : 'buyerP').value = list[i].buyer;
+            document.getElementById(popupData.type === 'A' ? 'productA' : 'productP').value = list[i].product;
+            document.getElementById(popupData.type === 'A' ? 'qtyA' : 'qtyP').value = list[i].qty;
+            document.getElementById(popupData.type === 'A' ? 'subA' : 'subP').value = formatRupiah(list[i].sub);
+            if(popupData.type === 'A') editA = i; 
+            else editP = i;
+        }
+        else {
+            handleAction();
+        }
+    }
+    // Reset popup data
+    popupData = null;
+}
+
+function updateSubtotal(type) {
+    let qty = document.getElementById(type === 'A' ? 'qtyA' : 'qtyP').value;
+    let select = document.getElementById(type === 'A' ? 'productA' : 'productP');
+    let price = select.options[select.selectedIndex].dataset.price;
+    if (qty) {
+        let subtotal = qty * price;
+        document.getElementById(type === 'A' ? 'subA' : 'subP').value = formatRupiah(subtotal);
+    } else {
+        document.getElementById(type === 'A' ? 'subA' : 'subP').value = '';
+    }
+}
+
+function handleAction() {
+    switch(popupAction) {
+        case 'addA': addData('A'); break;
+        case 'resetA': resetAll('A'); break;
+        case 'payA': bayar('A'); break;
+        case 'addP': addData('P'); break;
+        case 'resetP': resetAll('P'); break;
+        case 'payP': bayar('P'); break;
+    }
+}
+
+function addData(type) {
+    let buyer = document.getElementById(type === 'A' ? 'buyerA' : 'buyerP').value;
+    let product = document.getElementById(type === 'A' ? 'productA' : 'productP').value;
+    let qty = document.getElementById(type === 'A' ? 'qtyA' : 'qtyP').value;
+    let subInput = document.getElementById(type === 'A' ? 'subA' : 'subP').value;
+    
+    // Validasi input kosong
+    if (!buyer) {
+        alert("Nama pembeli harus diisi!");
+        document.getElementById(type === 'A' ? 'buyerA' : 'buyerP').focus();
+        return;
+    }
+    if (!qty || qty < 1) {
+        alert("Quantity harus diisi dengan angka yang valid!");
+        document.getElementById(type === 'A' ? 'qtyA' : 'qtyP').focus();
+        return;
+    }
+    
+    let sub = subInput.replace(/[^\d]/g, ''); // Remove currency formatting for calculation
+    
+    let list = type === 'A' ? dataA : dataP;
+    let edit = type === 'A' ? editA : editP;
+
+    if (edit === -1) {
+        list.push({buyer, product, qty, sub});
+    } else { 
+        list[edit] = {buyer, product, qty, sub}; 
+        if (type === 'A') editA = -1; 
+        else editP = -1;
+    }
+
+    renderTable(type);
+    resetFields(type, false);
+}
+
+function renderTable(type) {
+    let list = type === 'A' ? dataA : dataP;
+    let tbody = document.getElementById(type === 'A' ? 'tableA' : 'tableP');
+    tbody.innerHTML = '';
+    let total = 0;
+    
+    list.forEach((d, i) => {
+        total += Number(d.sub);
+        tbody.innerHTML += `<tr>
+            <td>${d.buyer}</td>
+            <td>${d.product}</td>
+            <td>${d.qty}</td>
+            <td class="rupiah">${formatRupiah(d.sub)}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class='btn-edit' onclick="editData('${type}', ${i})">Edit</button>
+                    <button class='btn-delete' onclick="deleteData('${type}', ${i})">Delete</button>
+                </div>
+            </td>
+        </tr>`;
+    });
+    
+    document.getElementById(type === 'A' ? 'totalA' : 'totalP').value = formatRupiah(total);
+}
+
+function editData(type, i) {
+    trigger('edit', 'Edit/Update data ini?', { type: type, index: i });
+}
+
+function deleteData(type, i) {
+    trigger('delete', 'Hapus data ini?', { type: type, index: i });
+}
+
+function resetFields(type, confirmReset = true) {
+    if (confirmReset) {
+        // Confirmation already handled by popup
+        document.getElementById(type === 'A' ? 'buyerA' : 'buyerP').value = '';
+        document.getElementById(type === 'A' ? 'productA' : 'productP').selectedIndex = 0;
+        document.getElementById(type === 'A' ? 'qtyA' : 'qtyP').value = '';
+        document.getElementById(type === 'A' ? 'subA' : 'subP').value = '';
+    } else {
+        // Direct reset without confirmation (after add/edit)
+        document.getElementById(type === 'A' ? 'buyerA' : 'buyerP').value = '';
+        document.getElementById(type === 'A' ? 'productA' : 'productP').selectedIndex = 0;
+        document.getElementById(type === 'A' ? 'qtyA' : 'qtyP').value = '';
+        document.getElementById(type === 'A' ? 'subA' : 'subP').value = '';
+    }
+    document.getElementById(type === 'A' ? 'buyerA' : 'buyerP').focus();
+}
+
+function resetAll(type) {
+    // Reset semua data
+    if (type === 'A') { 
+        dataA = []; 
+        renderTable('A'); 
+        resetFields('A', false); 
+    } 
+    else { 
+        dataP = []; 
+        renderTable('P'); 
+        resetFields('P', false); 
+    }
+    
+    // Reset payment fields
+    document.getElementById(type === 'A' ? 'payA' : 'payP').value = '';
+    document.getElementById(type === 'A' ? 'changeA' : 'changeP').value = '';
+}
+
+function bayar(type) {
+    let totalInput = document.getElementById(type === 'A' ? 'totalA' : 'totalP').value;
+    let bayarVal = document.getElementById(type === 'A' ? 'payA' : 'payP').value;
+    
+    let total = Number(totalInput.replace(/[^\d]/g, ''));
+    
+    if (!bayarVal) {
+        alert("Jumlah bayar harus diisi!");
+        document.getElementById(type === 'A' ? 'payA' : 'payP').focus();
+        return;
+    }
+    
+    if (Number(bayarVal) < total) { 
+        alert("Uangmu tidak cukup LOL 😭"); 
+        document.getElementById(type === 'A' ? 'payA' : 'payP').focus();
+        return;
+    }
+    
+    let change = Number(bayarVal) - total;
+    document.getElementById(type === 'A' ? 'changeA' : 'changeP').value = formatRupiah(change);
+    alert("Pembayaran berhasil!\nKembalian Anda: " + formatRupiah(change));
+    
+    // Reset payment fields
+    document.getElementById(type === 'A' ? 'payA' : 'payP').value = '';
+}
+
+// Fungsi untuk membuat efek sparkle
+function createSparkle(x, y) {
+    const sparkle = document.createElement('div');
+    sparkle.classList.add('sparkle');
+    
+    // Ukuran acak untuk sparkle
+    const size = Math.random() * 20 + 10;
+    sparkle.style.width = `${size}px`;
+    sparkle.style.height = `${size}px`;
+    
+    // Posisi sparkle
+    sparkle.style.left = `${x - size/2}px`;
+    sparkle.style.top = `${y - size/2}px`;
+    
+    // Durasi animasi acak
+    const duration = Math.random() * 1 + 1;
+    sparkle.style.animationDuration = `${duration}s`;
+    
+    document.body.appendChild(sparkle);
+    
+    // Hapus elemen setelah animasi selesai
+    setTimeout(() => {
+        sparkle.remove();
+    }, duration * 1000);
+}
+
+// Event listener untuk klik
+document.addEventListener('click', function(e) {
+    createSparkle(e.clientX, e.clientY);
+});
+
+// Juga buat sparkle secara acak
+setInterval(() => {
+    const x = Math.random() * window.innerWidth;
+    const y = Math.random() * window.innerHeight;
+    createSparkle(x, y);
+}, 500);
+</script>
+
+</body>
+</html>
